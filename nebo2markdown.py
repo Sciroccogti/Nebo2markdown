@@ -15,11 +15,9 @@ if __name__ == "__main__":
         "-o", "--output", help="path to output .md", type=str, required=True)
     args = parser.parse_args()
 
-    htmlFile = open(args.url, encoding="utf-8")
+    htmlFile = open(args.input, encoding="utf-8")
     bs = BeautifulSoup(htmlFile.read(), "html.parser")
     markdownFile = open(args.output, encoding="utf-8", mode="w")
-    bs = BeautifulSoup(htmlFile.html.html, "lxml")
-    print(bs.prettify())
     pageHTML = bs.find("main", class_="page-html")
     contents = pageHTML.contents
     assert(len(contents) == 1)
