@@ -1,0 +1,3 @@
+[submodule "mathconverter"]
+	path = mathconverter
+	url = https://github.com/Sciroccogti/mathconverter

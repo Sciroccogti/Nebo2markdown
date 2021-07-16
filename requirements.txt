@@ -1,0 +1,5 @@
+click
+lxml
+html2markdown
+requests
+beautifulsoup4
