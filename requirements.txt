@@ -1,5 +1,5 @@
 click
 lxml
-html2markdown
+html2text
 requests
 beautifulsoup4
