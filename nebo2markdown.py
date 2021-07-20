@@ -26,6 +26,9 @@ def htmlUnparse(html: Tag, markdownFile: TextIOWrapper, isRow: bool = False):
                     markdownFile.write(h2t.handle(text))
                 except:
                     t = text.__unicode__()
+                    # regard <span style="background-color:rgba(255,221,51,0.4);"> as <mark>
+                    pattern = r"<span(?:.|\n)[^>]*?background-color(?:.|\n)[^>]*?rgba\(255,221,51,0.4\)(?:.|\n)[^>]*?>(.[^>]*?)</span>"
+                    t = re.sub(pattern, r"==\1==", t)
                     t = re.sub(r"<span.*?>", "", t)
                     t = re.sub(r"</span>", "", t)
                     markdownFile.write(h2t.handle(t))
@@ -85,7 +88,7 @@ if __name__ == "__main__":
         #     "window.scrollTo(0, document.body.scrollHeight);"
         #     "var lenOfPage=document.body.scrollHeight;"
         #     "return lenOfPage;")
-        time.sleep(1) # wait for JavaScript to load
+        time.sleep(1)  # wait for JavaScript to load
         bs = BeautifulSoup(browser.page_source, "lxml")
         browser.quit()
     else:
@@ -95,7 +98,6 @@ if __name__ == "__main__":
     markdownFile = open(args.output, encoding="utf-8", mode="w")
     pageHTML = bs.find("main", class_="page-html")
     contents = pageHTML.contents
-    assert(len(contents) == 1)
-    mainDiv = contents[0]
-    htmlUnparse(mainDiv, markdownFile)
+    for mainDiv in contents:
+        htmlUnparse(mainDiv, markdownFile)
     markdownFile.close()
