@@ -1,16 +1,18 @@
 import argparse
-from io import TextIOWrapper
 import os
 import re
+import time
+from io import TextIOWrapper
 
-import html2text
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
+import html2text
 from mathconverter.converter import mathml2latex_yarosh
 
 h2t = html2text.HTML2Text()
 h2t.body_width = 0
+
 
 def htmlUnparse(html: Tag, markdownFile: TextIOWrapper, isRow: bool = False):
     for block in html:
@@ -50,13 +52,46 @@ def htmlUnparse(html: Tag, markdownFile: TextIOWrapper, isRow: bool = False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-i", "--input", help="path to input .html", type=str, required=True)
+        "-i", "--input", help="path to input .html", type=str)
+    parser.add_argument(
+        "-u", "--url", help="url of published Nebo page", type=str)
     parser.add_argument(
         "-o", "--output", help="path to output .md", type=str, required=True)
     args = parser.parse_args()
 
-    htmlFile = open(args.input, encoding="utf-8")
-    bs = BeautifulSoup(htmlFile.read(), "html.parser")
+    if (args.input != None):
+        htmlFile = open(args.input, encoding="utf-8")
+        bs = BeautifulSoup(htmlFile.read(), "html.parser")
+    elif (args.url != None):
+        from selenium import webdriver
+        try:
+            browser = webdriver.Chrome()
+        except Exception as err:
+            print("Chrome: " + str(err))
+            try:
+                browser = webdriver.Firefox()
+            except Exception as err:
+                print("FireFox: " + str(err))
+                try:
+                    browser = webdriver.Edge()
+                except Exception as err:
+                    print("Microsoft Edge Driver: " + str(err))
+                    print("No valid webdriver detected by selenium.")
+                    print("See https://pypi.org/project/selenium/#Drivers")
+                    exit(-1)
+
+        browser.get(args.url)
+        # browser.execute_script(
+        #     "window.scrollTo(0, document.body.scrollHeight);"
+        #     "var lenOfPage=document.body.scrollHeight;"
+        #     "return lenOfPage;")
+        time.sleep(1) # wait for JavaScript to load
+        bs = BeautifulSoup(browser.page_source, "lxml")
+        browser.quit()
+    else:
+        print("Either --input or --url should be specified!")
+        exit(-1)
+
     markdownFile = open(args.output, encoding="utf-8", mode="w")
     pageHTML = bs.find("main", class_="page-html")
     contents = pageHTML.contents
